@@ -2,17 +2,19 @@
   let currentSongIndex = $state(0);
   let isPlaying = $state(false);
   let songRefs = $state([]);
+  let searchMode = $state('jump'); // jump or filter
+  let searchTerm = $state(''); // for filter mode
   
   // Sample playlist data
   const playlist = [
-    { id: 1, title: "Song 1", duration: "3:45" },
-    { id: 2, title: "Song 2", duration: "4:20" },
-    { id: 3, title: "Song 3", duration: "3:30" },
-    { id: 4, title: "Song 4", duration: "5:15" },
-    { id: 5, title: "Song 5", duration: "3:55" },
-    { id: 6, title: "Song 6", duration: "4:10" },
-    { id: 7, title: "Song 7", duration: "3:25" },
-    { id: 8, title: "Song 8", duration: "4:45" },
+    { id: 1, title: "Bohemian Rhapsody", artist: "Queen", duration: "3:45" },
+    { id: 2, title: "Sweet Child O' Mine", artist: "Guns N' Roses", duration: "4:20" },
+    { id: 3, title: "Hotel California", artist: "Eagles", duration: "3:30" },
+    { id: 4, title: "Stairway to Heaven", artist: "Led Zeppelin", duration: "5:15" },
+    { id: 5, title: "Sweet Home Alabama", artist: "Lynyrd Skynyrd", duration: "3:55" },
+    { id: 6, title: "Sweet Dreams", artist: "Eurythmics", duration: "4:10" },
+    { id: 7, title: "Sweet Emotion", artist: "Aerosmith", duration: "3:25" },
+    { id: 8, title: "November Rain", artist: "Guns N' Roses", duration: "4:45" },
   ];
 
   // Simulate song completion and auto-scroll to next
@@ -35,6 +37,22 @@
       });
     }
   });
+
+  const highlightSearchTerm = (text) => {
+    if (!searchTerm) return text;
+    const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
+    return parts.map((part, index) => {
+      return part.toLowerCase() === searchTerm.toLowerCase()
+        ? `<span class="bg-yellow-200">${part}</span>`
+        : part;
+    });
+  }
+
+  $effect(() => {
+    if (searchMode === 'jump' && searchTerm) {
+      // TODO: Later on!
+    }
+  });
 </script>
 
 <div class="w-full max-w-md mx-auto">
@@ -53,14 +71,27 @@
     </div>
   </div>
 
+  <div class="mb-4">
+    <div class="flex items-center gap-2 mb-2">
+      <div class="relative flex-1">
+        <input type="text" bind:value={searchTerm} placeholder="Search songs or artists..."
+        class="w-full pl-10 pr-4 py-2 border rounded">
+      </div>
+      <select bind:value={searchMode} class="border rounded px-3 py-2">
+        <option value="jump">Jump</option>
+        <option value="filter">Filter</option>
+      </select>
+    </div>
+  </div>
+
   <div class="h-64 overflow-y-auto border rounded">
     {#each playlist as song, index}
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div bind:this={songRefs[index]} class={`p-4 border-b cursor-pointer ${currentSongIndex === index ? 'bg-blue-100' : 'hover:bg-gray-50'}`}
         onclick={() => playSong(index)}>
-        <div class="font-medium">{song.title}</div>
-        <div class="text-sm text-gray-500">{song.duration}</div>
+        <div class="font-medium">{highlightSearchTerm(song.title)}</div>
+        <div class="text-sm text-gray-500">{highlightSearchTerm(song.artist)} . {song.duration}</div>
       </div>
     {/each}
   </div>
