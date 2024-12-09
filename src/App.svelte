@@ -17,6 +17,11 @@
     { id: 8, title: "November Rain", artist: "Guns N' Roses", duration: "4:45" },
   ];
 
+  let filteredPlaylist = $derived(playlist.filter((song) => {
+    return song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    song.artist.toLowerCase().includes(searchTerm.toLowerCase());
+  }))
+
   // Simulate song completion and auto-scroll to next
   const handleSongEnd = () => {
     if (currentSongIndex < playlist.length - 1) {
@@ -45,12 +50,23 @@
       return part.toLowerCase() === searchTerm.toLowerCase()
         ? `<span class="bg-yellow-200">${part}</span>`
         : part;
-    });
+    }).join('');
   }
 
+  // Jump to first matching song
   $effect(() => {
     if (searchMode === 'jump' && searchTerm) {
-      // TODO: Later on!
+      const firstMatch = playlist.findIndex(song => {
+        return song.title.toLocaleLowerCase().includes(searchTerm.toLowerCase()) ||
+        song.artist.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+
+      if (firstMatch !== -1) {
+        songRefs[firstMatch]?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
     }
   });
 </script>
@@ -85,13 +101,13 @@
   </div>
 
   <div class="h-64 overflow-y-auto border rounded">
-    {#each playlist as song, index}
+    {#each (searchMode === 'filter' ? filteredPlaylist : playlist) as song, index}
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div bind:this={songRefs[index]} class={`p-4 border-b cursor-pointer ${currentSongIndex === index ? 'bg-blue-100' : 'hover:bg-gray-50'}`}
         onclick={() => playSong(index)}>
-        <div class="font-medium">{highlightSearchTerm(song.title)}</div>
-        <div class="text-sm text-gray-500">{highlightSearchTerm(song.artist)} . {song.duration}</div>
+        <div class="font-medium">{@html highlightSearchTerm(song.title)}</div>
+        <div class="text-sm text-gray-500">{@html highlightSearchTerm(song.artist)} . {song.duration}</div>
       </div>
     {/each}
   </div>
